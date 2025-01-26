@@ -137,6 +137,7 @@ CREATE TABLE UserLocation_Geofence_Violation (
     geo_id INT REFERENCES Geofence(geo_id) ON DELETE CASCADE,
     violation_type VARCHAR(100),
     violation_time TIMESTAMP,
+	end_time Default NULL
     PRIMARY KEY (ulocation_id, geo_id)
 );
 
@@ -233,8 +234,6 @@ INSERT INTO Manager_Branch (manager_id, branch_id, join_date, transfer_date) VAL
 (2, 2, '2023-01-01', NULL);
 
 
-ALTER TABLE geofence_violation
-ADD COLUMN end_time TIMESTAMP NULL;
 
 CREATE TABLE map_locations (
     id SERIAL PRIMARY KEY,
