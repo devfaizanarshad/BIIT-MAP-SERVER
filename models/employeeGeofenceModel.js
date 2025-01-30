@@ -15,17 +15,18 @@ const EmployeeGeofenceModel = {
         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;
       `;
       const values = [employee_id, geoId, startDate, endDate, startTime, endTime, type];
-      
+  
       // Execute the query
       const result = await db.query(query, values);
   
       // Return the inserted row
-      return result.rows[0]; 
+      return result.rows[0];
     } catch (error) {
       console.error("Error assigning geofence to employee:", error);
       throw new Error("Failed to assign geofence to employee.");
     }
   },
+  
     
   // Fetch a user's geofence assignments by user ID
   getGeofencesByEmployeeId: async (userId) => {

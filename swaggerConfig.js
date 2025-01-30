@@ -31,12 +31,14 @@ const swaggerOptions = {
       // Manager Routes
       { name: 'Manager Routes', description: 'Operations for managers, including monitoring and assignments.' },
       { name: 'Fetch employees under a manager' },
-      { name: 'Assign a geofence to an employee' },
+      { name: 'Assign a geofence to employees' },
+      { name: 'Fetch all assigned geofences' },
       { name: 'Assign a vehicle to an employee' },
+      { name: 'Fetch all assigned vehicles' },
       { name: 'Monitor All Employees locations' },
       { name: 'View geofence violations for employees' },
       { name: 'Monitor a single employee location' },
-      { name: 'Fetch violations by date' }, // New Route
+      { name: 'Fetch violations by filters' }, // New Route
       { name: 'Fetch violations by employee' }, // New Route
       { name: 'Fetch violations for a group' }, // New Route
 
@@ -48,7 +50,7 @@ const swaggerOptions = {
 
       // Location Routes
       { name: 'Location Routes', description: 'Operations related to Locations functionalities.' },
-      { name: 'Track current location' },
+      { name: 'Track geofence boundary' },
       { name: 'Add a new map location' },
       { name: 'Search Location'},
 

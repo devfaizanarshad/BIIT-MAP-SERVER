@@ -91,6 +91,25 @@ class GeofenceController {
         return res.status(500).json({ message: 'Error deactivating geofence' });
       }
     }
+
+    static async getGeofenceByName(req, res) {
+      try {
+        const { name } = req.params;
+  
+        // Fetch the geofence by name
+        const geofence = await GeofenceModel.getGeofenceByName(name);
+  
+        if (!geofence) {
+          return res.status(404).json({ message: `Geofence with name '${name}' not found.` });
+        }
+  
+        return res.status(200).json({ geofence });
+      } catch (error) {
+        console.error("Error fetching geofence:", error);
+        return res.status(500).json({ message: "Error fetching geofence" });
+      }
+    }
+
   }
   
   export default GeofenceController;

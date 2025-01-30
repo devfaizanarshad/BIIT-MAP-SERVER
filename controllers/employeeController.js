@@ -77,7 +77,7 @@ class EmployeeController {
         }
     
         console.log(`Fetching geofences for employeeId: ${employeeId}`);
-        const geofences = await EmployeeGeofenceModel.getGeofenceById(employeeId);
+        const geofences = await EmployeeGeofenceModel.getGeofencesByEmployeeId(employeeId);
     
         if (!geofences || geofences.length === 0) {
           return res.status(404).json({ message: 'No geofences found for the employee' });
@@ -90,6 +90,24 @@ class EmployeeController {
         return res.status(500).json({ message: 'Error fetching assigned geofences' });
       }
     }
+
+    ///Get All Assigned Geofence
+
+    static async getAllAssignedGeofences(req, res) {
+      try {
+        const { employeeId, geoId } = req.query;
+    
+        // Pass query parameters to the model for filtering
+        const geofences = await EmployeeGeofenceModel.getGeofencesByEmployee({ employeeId, geoId });
+    
+        console.log(`Filtered geofences fetched: `, geofences);
+        return res.status(200).json({ geofences });
+      } catch (error) {
+        console.error('Error fetching geofences:', error);
+        return res.status(500).json({ message: 'Error fetching assigned geofences' });
+      }
+    }
+    
 
       // Get assigned vehicles (mock response)
   static async getAssignedVehicles(req, res) {
@@ -114,6 +132,24 @@ class EmployeeController {
       return res.status(500).json({ message: 'Error fetching assigned vehicles' });
     }
   }
+
+  static async getAllAssignedVehicle(req, res) {
+    try {
+      // Destructure query parameters, with default values as null
+      const { employeeId, vehicleId } = req.query;
+  
+      // Pass query parameters to the model for filtering
+      const vehicles = await VehicleModel.getAllAssignedVehicles({ employeeId, vehicleId });
+  
+      console.log(`Filtered Vehicles fetched: `, vehicles);
+      return res.status(200).json({ vehicles });
+    } catch (error) {
+      console.error('Error fetching Vehicles:', error);
+      return res.status(500).json({ message: 'Error fetching assigned Vehicles' });
+    }
+  }
+  
+  
     
   }
   

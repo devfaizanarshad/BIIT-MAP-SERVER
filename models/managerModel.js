@@ -73,26 +73,27 @@ const ManagerModel = {
 getEmployeesByManagerId: async (managerId) => {
   try {
     const query = `
-      SELECT 
-        e.employee_id,
-        e.first_name,
-        e.last_name,
-        e.address,
-        e.city,
-        e.phone,
-        e.image,
-        m.manager_id,
-        m.user_id AS manager_user_id
-      FROM 
-        Employee e
-      INNER JOIN 
-        Employee_Branch eb ON e.employee_id = eb.employee_id
-      INNER JOIN 
-        Manager_Branch mb ON eb.branch_id = mb.branch_id
-      INNER JOIN 
-        Manager m ON mb.manager_id = m.manager_id
-      WHERE 
-        m.manager_id = $1;
+SELECT 
+    e.employee_id,
+    e.first_name,
+    e.last_name,
+    e.address,
+    e.city,
+    e.phone,
+    e.image,
+    m.manager_id,
+    m.user_id AS manager_user_id
+FROM 
+    Employee e
+INNER JOIN 
+    Employee_Branch eb ON e.employee_id = eb.employee_id
+INNER JOIN 
+    Manager_Branch mb ON eb.branch_id = mb.branch_id
+INNER JOIN 
+    Manager m ON mb.manager_id = m.manager_id
+WHERE 
+    m.manager_id = $1
+    AND e.user_id NOT IN (SELECT user_id FROM Manager);
     `;
     const result = await db.query(query, [managerId]);
     return result.rows; // Return the list of employees
@@ -321,7 +322,98 @@ getViolationHistoryForGroup: async (employeeIds) => {
     console.error("Error fetching violation history for group:", error);
     throw new Error("Error fetching violation history for group");
   }
+},
+
+// Check if geofence assignment already exists for the employee
+checkGeofenceExists: async (employee_id, geoId) => {
+  try {
+    const query = `
+      SELECT 1 
+      FROM Employee_Geofence 
+      WHERE employee_id = $1 AND geo_id = $2;
+    `;
+    const values = [employee_id, geoId];
+
+    const result = await db.query(query, values);
+
+    // If a row is returned, assignment already exists
+    return result.rowCount > 0;
+  } catch (error) {
+    console.error("Error checking geofence existence:", error);
+    throw new Error("Failed to check geofence existence.");
+  }
+},
+
+
+async getFilteredViolationsModel(managerId, start_date, end_date, employee_id, geo_id) {
+  try {
+    // Step 1: Get the employees of the manager
+    const employees = await ManagerModel.getEmployeesByManagerId(managerId);
+
+    // Step 2: Extract the employee IDs
+    const employeeIds = employees.map(emp => emp.employee_id);
+
+    if (employeeIds.length === 0) {
+      return { message: 'No employees found under this manager.' };
+    }
+
+    // Step 3: Fetch violations for the employees
+    let query = `
+      SELECT 
+        ev.ulocation_id, 
+        ev.violation_type, 
+        ev.violation_time, 
+        ev.geo_id, 
+        g.name AS geo_name, 
+        e.employee_id, 
+        e.first_name, 
+        e.last_name
+      FROM 
+        UserLocation_Geofence_Violation ev
+      JOIN 
+        UserLocation ul ON ev.ulocation_id = ul.ulocation_id
+      JOIN 
+        Employee e ON ul.user_id = e.user_id
+      LEFT JOIN 
+        Geofence g ON ev.geo_id = g.geo_id
+      WHERE 
+        e.employee_id = ANY($1::int[])
+    `;
+    
+      const params = [employeeIds];
+
+      if (start_date) {
+          query += ` AND ev.violation_time >= $${params.length + 1}`;
+          params.push(start_date);
+      }
+
+      if (end_date) {
+          query += ` AND ev.violation_time <= $${params.length + 1}`;
+          params.push(end_date);
+      }
+
+      if (employee_id) {
+          query += ` AND e.employee_id = $${params.length + 1}`;
+          params.push(employee_id);
+      }
+
+      if (geo_id) {
+          query += ` AND g.geo_id = $${params.length + 1}`;
+          params.push(geo_id);
+      }
+      
+      console.log(query);
+      
+
+      const result = await db.query(query, params);
+      return result.rows;
+  } catch (error) {
+      console.error("Error fetching violations in model:", error);
+      throw error;
+  }
 }
+
+
 
 };
 

@@ -1,5 +1,6 @@
 import express from 'express';
 import ManagerController from '../controllers/managerController.js';
+import EmployeeController from '../controllers/employeeController.js';
 
 const router = express.Router();
 
@@ -10,15 +11,14 @@ const router = express.Router();
  *     description: Operations for geofence, vehicle assignments, monitoring, and violations.
  */
 
-// Assign geofence to an employee
 /**
  * @swagger
  * /api/manager/assign-geofence:
  *   post:
  *     tags:
- *       - Assign a geofence to an employee
- *     summary: Assign a geofence to an employee
- *     description: Assign a geofence to an employee with specific dates and times.
+ *       - Assign a geofence to employees
+ *     summary: Assign a geofence to multiple employees
+ *     description: Assign a geofence to multiple employees with specific dates, times, and type.
  *     requestBody:
  *       required: true
  *       content:
@@ -26,8 +26,10 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             properties:
- *               employeeId:
- *                 type: integer
+ *               employeeIds:
+ *                 type: array
+ *                 items:
+ *                   type: integer
  *               geoId:
  *                 type: integer
  *               start_date:
@@ -43,10 +45,10 @@ const router = express.Router();
  *                 type: string
  *                 format: time
  *               type:
- *                type: string
+ *                 type: string
  *     responses:
  *       200:
- *         description: Geofence assigned successfully.
+ *         description: Geofence assigned successfully to all employees.
  *         content:
  *           application/json:
  *             schema:
@@ -55,11 +57,12 @@ const router = express.Router();
  *                 message:
  *                   type: string
  *             example:
- *               message: "Geofence 1 assigned to employee 1 successfully."
+ *               message: "Geofence 1 assigned to employees 1, 2, and 3 successfully."
  *       500:
  *         description: Error assigning geofence.
  */
-router.post('/assign-geofence', ManagerController.assignGeofenceToEmployee);
+
+router.post('/assign-geofence', ManagerController.assignGeofenceToEmployees);
 
 // Assign vehicle to an employee
 /**
@@ -269,14 +272,16 @@ router.get('/:managerId/employees', ManagerController.getEmployeesByManagerId);
  *         description: Error fetching locations.
  */
 router.get('/:managerId/employees/locations', ManagerController.getEmployeesLocationByManagerId);
+
+
 /**
  * @swagger
- * /api/manager/violations-by-date:
+ * /api/manager/violations-by-filters:
  *   get:
  *     tags:
- *       - Fetch violations by date
- *     summary: Fetch violations by date for a specific manager
- *     description: Retrieve geofence violations for a specific manager that occurred on a specific date.
+ *       - Fetch violations by filters
+ *     summary: Fetch violations with additional filter criteria for a specific manager
+ *     description: Retrieve geofence violations for a specific manager that occurred within a date range or based on employee_id, geo_id, or other filters.
  *     parameters:
  *       - name: managerId
  *         in: query
@@ -284,13 +289,32 @@ router.get('/:managerId/employees/locations', ManagerController.getEmployeesLoca
  *         schema:
  *           type: integer
  *           example: 1
- *       - name: date
+ *       - name: start_date
  *         in: query
- *         required: true
+ *         required: false
  *         schema:
  *           type: string
  *           format: date
  *           example: "2023-12-01"
+ *       - name: end_date
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *           example: "2023-12-31"
+ *       - name: employee_id
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           example: 123
+ *       - name: geo_id
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           example: 5
  *     responses:
  *       200:
  *         description: Violations fetched successfully.
@@ -320,9 +344,9 @@ router.get('/:managerId/employees/locations', ManagerController.getEmployeesLoca
  *       400:
  *         description: Bad request. Missing managerId or date.
  *       500:
- *         description: Error fetching violations by date.
+ *         description: Error fetching violations.
  */
-router.get('/violations-by-date', ManagerController.getViolationsByDate);
+router.get('/violations-by-filters', ManagerController.getFilteredViolations); 
 
 
 /**
@@ -417,6 +441,145 @@ router.post('/violations-for-group', ManagerController.getViolationsForGroup);
  *         description: Error fetching violations for employee.
  */
 router.get('/violations-by-employee/:employeeId', ManagerController.getViolationsByEmployeeId);
+
+/**
+ * @swagger
+ * /api/manager/assigned-geofences:
+ *   get:
+ *     summary: Get all assigned geofences with optional filtering by employee or geofence.
+ *     tags:
+ *       - Fetch all assigned geofences
+ *     parameters:
+ *       - in: query
+ *         name: employeeId
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: Filter by employee ID to see geofences assigned to a specific employee.
+ *       - in: query
+ *         name: geoId
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: Filter by geofence ID to see which employee is assigned to a specific geofence.
+ *     responses:
+ *       200:
+ *         description: A list of assigned geofences.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 geofences:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       employee_id:
+ *                         type: integer
+ *                         description: The ID of the employee.
+ *                       geo_id:
+ *                         type: integer
+ *                         description: The ID of the geofence.
+ *                       geofence_name:
+ *                         type: string
+ *                         description: Name of the geofence.
+ *                       geofence_boundary:
+ *                         type: string
+ *                         description: Geofence boundary details.
+ *                       access_type:
+ *                         type: string
+ *                         description: Access type for the geofence.
+ *                       start_date:
+ *                         type: string
+ *                         format: date
+ *                         description: Start date of the assignment.
+ *                       end_date:
+ *                         type: string
+ *                         format: date
+ *                         description: End date of the assignment.
+ *                       start_time:
+ *                         type: string
+ *                         description: Start time for geofence access.
+ *                       end_time:
+ *                         type: string
+ *                         description: End time for geofence access.
+ *                       is_active:
+ *                         type: boolean
+ *                         description: Whether the geofence assignment is active.
+ *                       is_violating:
+ *                         type: boolean
+ *                         description: Whether there are any violations for the geofence.
+ *       400:
+ *         description: Bad request due to invalid query parameters.
+ *       500:
+ *         description: Internal server error while fetching data.
+ */
+router.get("/assigned-geofences", EmployeeController.getAllAssignedGeofences);
+
+
+/**
+ * @swagger
+ * /api/manager/assigned-vehicles:
+ *   get:
+ *     summary: Get all assigned vehicles with optional filtering by employee or vehicle.
+ *     tags:
+ *       - Fetch all assigned vehicles
+ *     parameters:
+ *       - in: query
+ *         name: employeeId
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: Filter by employee ID to see vehicles assigned to a specific employee.
+ *       - in: query
+ *         name: vehicleId
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: Filter by vehicle ID to see which employee is assigned a specific vehicle.
+ *     responses:
+ *       200:
+ *         description: A list of assigned vehicles.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 vehicles:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       employee_id:
+ *                         type: integer
+ *                         description: The ID of the employee.
+ *                       vehicle_id:
+ *                         type: integer
+ *                         description: The ID of the vehicle.
+ *                       vehicle_name:
+ *                         type: string
+ *                         description: Name or model of the vehicle.
+ *                       license_plate:
+ *                         type: string
+ *                         description: License plate number of the vehicle.
+ *                       assigned_date:
+ *                         type: string
+ *                         format: date
+ *                         description: The date when the vehicle was assigned.
+ *                       return_date:
+ *                         type: string
+ *                         format: date
+ *                         description: The date when the vehicle is expected to be returned.
+ *                       is_active:
+ *                         type: boolean
+ *                         description: Whether the vehicle assignment is active.
+ *       400:
+ *         description: Bad request due to invalid query parameters.
+ *       500:
+ *         description: Internal server error while fetching data.
+ */
+router.get("/assigned-vehicles", EmployeeController.getAllAssignedVehicle);
 
 
 export default router;

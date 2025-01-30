@@ -6,27 +6,37 @@ const UserModel = {
   // Insert a new user
   createUser: async (username, email, password, role) => {
     try {
-
-      console.log(username, email, password, role);
-      
+        
+      // Check if password is provided
       if (!password) {
-        throw new Error("Password is required");
+        throw new Error("Password is required.");
       }
   
+      // Hash the password
       const hashedPassword = await bcrypt.hash(password, 10);
-      console.log('Hashed Password:', hashedPassword);  // Log hashed password for debugging
   
+      // Insert user into the database
       const query = `
         INSERT INTO users (username, email, password, role) 
         VALUES ($1, $2, $3, $4) RETURNING *;
       `;
       const values = [username, email, hashedPassword, role];
+  
       const result = await db.query(query, values);
-      const { password: hashedPasswordResponse, ...user } = result.rows[0]; // Exclude password from response
-      return user; // Return user without password
+  
+      // Exclude the password from the response
+      const { password: hashedPasswordResponse, ...user } = result.rows[0];
+      return user;
     } catch (error) {
+      // Handle unique constraint violations for email
+      if (error.code === '23505') { // PostgreSQL error code for unique violation
+        console.error('Duplicate email error:', error);
+        throw new Error('The email address is already in use. Please use a different email.');
+      }
+  
+      // Log and throw other errors
       console.error('Error creating user:', error);
-      throw new Error('Error creating user');
+      throw new Error(error.message || 'Error creating user.');
     }
   },  
 

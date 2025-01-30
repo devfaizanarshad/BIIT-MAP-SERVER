@@ -8,10 +8,10 @@ const router = express.Router();
  * @swagger
  * /api/location/{employeeId}/add-location:
  *   post:
- *     summary: Track current location for an employee.
+ *     summary: Track geofence boundary
  *     description: Allows an admin or manager to add a new location for an employee.
  *     tags:
- *       - Track current location
+ *       - Track geofence boundary
  *     parameters:
  *       - name: employeeId
  *         in: path

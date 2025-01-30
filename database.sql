@@ -1,4 +1,3 @@
-
 -- Table for Users
 CREATE TABLE Users (
     user_id SERIAL PRIMARY KEY,
@@ -137,7 +136,7 @@ CREATE TABLE UserLocation_Geofence_Violation (
     geo_id INT REFERENCES Geofence(geo_id) ON DELETE CASCADE,
     violation_type VARCHAR(100),
     violation_time TIMESTAMP,
-	end_time Default NULL
+	end_time TIMESTAMP DEFAULT NULL,
     PRIMARY KEY (ulocation_id, geo_id)
 );
 

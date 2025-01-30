@@ -5,22 +5,48 @@ import Manager from "../models/managerModel.js";
 
 class ManagerController {
   // Assign geofence to employee
-  static async assignGeofenceToEmployee(req, res) {
+  static async assignGeofenceToEmployees(req, res) {
     try {
-      const { employeeId, geoId, start_date, end_date, start_time, end_time, type } = req.body;
-
-
-      const assignGeofence = ManagerModel.assignGeofenceToEmployee(employeeId, geoId, start_date, end_date, start_time, end_time, type);
-      
-
+      const { employeeIds, geoId, start_date, end_date, start_time, end_time, type } = req.body;
+  
+      // Check if employeeIds is an array and is not empty
+      if (!Array.isArray(employeeIds) || employeeIds.length === 0) {
+        return res.status(400).json({ message: "Please provide a valid list of employee IDs." });
+      }
+  
+      // Ensure valid type (optional, depending on your requirements)
+      if (!type) {
+        return res.status(400).json({ message: "Geofence type is required" });
+      }
+  
+      // Loop over employeeIds and assign geofence to each employee
+      for (let i = 0; i < employeeIds.length; i++) {
+        const employeeId = employeeIds[i];
+  
+        // Check if geofence assignment already exists for this employee
+        const existingAssignment = await Manager.checkGeofenceExists(employeeId, geoId);
+  
+        if (existingAssignment) {
+          return res.status(400).json({
+            message: `Geofence ${geoId} is already assigned to employee ${employeeId}.`
+          });
+        }
+  
+        // Assign geofence to the employee
+        await ManagerModel.assignGeofenceToEmployee(employeeId, geoId, start_date, end_date, start_time, end_time, type);
+      }
+  
       // Mock success response
       return res.status(200).json({
-        message: `Geofence ${geoId} assigned to employee ${employeeId} successfully`,
+        message: `Geofence ${geoId} assigned to employees ${employeeIds.join(', ')} successfully.`,
       });
     } catch (error) {
+      console.error("Error assigning geofence to employees:", error);
       return res.status(500).json({ message: "Error assigning geofence" });
     }
   }
+  
+  
 
   // Assign vehicle to employee
   static async assignVehicleToEmployee(req, res) {
@@ -166,6 +192,22 @@ class ManagerController {
       return res.status(500).json({ message: "Error fetching violations for group" });
     }
   }
+
+  static async getFilteredViolations(req, res) {
+    try {
+        const { managerId, start_date, end_date, employee_id, geo_id } = req.query;
+
+        // Call the model to fetch violations with the given filters
+        const violations = await Manager.getFilteredViolationsModel(managerId, start_date, end_date, employee_id, geo_id);
+
+        // Return the result as JSON
+        return res.status(200).json({ violations });
+    } catch (error) {
+        console.error("Error fetching filtered violations:", error);
+        return res.status(500).json({ message: "Error fetching filtered violations" });
+    }
+}
+
 }
 
 export default ManagerController;

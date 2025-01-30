@@ -289,6 +289,43 @@ router.patch('/deactivate-user/:userId', AdminController.deactivateUser);
  *         description: Internal Server Error
  */
 
+
+/**
+ * @swagger
+ * /api/admin/single-geofence/{name}:
+ *   get:
+ *     tags:
+ *       - Geofence Management
+ *     summary: Fetch a single geofence by name
+ *     description: Retrieve details of a geofence by its name.
+ *     parameters:
+ *       - name: name
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Geofence details fetched successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 geofence:
+ *                   type: object
+ *                   example:
+ *                     geo_id: 1
+ *                     name: "Blue Area"
+ *                     boundary: [{"latitude":33.7100, "longitude":73.0550}]
+ *                     created_at: "2023-01-01T12:00:00.000Z"
+ *       404:
+ *         description: Geofence not found.
+ *       500:
+ *         description: Internal server error.
+ */
+
+
 /**
  * @swagger
  * /api/admin/update-geofence/{geoId}:
@@ -363,6 +400,7 @@ router.patch('/deactivate-user/:userId', AdminController.deactivateUser);
 
 router.post('/create-geofence', GeofenceController.createGeofence); 
 router.get('/list-geofences', GeofenceController.getAllGeofences);
+router.get("/single-geofence/:name", GeofenceController.getGeofenceByName);
 router.put('/update-geofence/:geoId', GeofenceController.updateGeofence); 
 router.patch('/deactivate-geofence/:geoId', GeofenceController.deactivateGeofence); 
 

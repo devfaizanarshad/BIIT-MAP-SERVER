@@ -11,7 +11,21 @@ class AdminController {
     try {
       const { username, email, password, role, first_name, last_name, address, city, phone, image, branch_name } = req.body;
       
-      // Log before password hashing
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          message: 'Please Provide the valid email address.',
+        })      
+      }
+
+    // Validate email before proceeding
+    const existingUser = await UserModel.checkUserByEmail(email); // Check if email already exists
+    if (existingUser) {
+      return res.status(400).json({
+        message: 'The email address is already in use. Please use a different email.',
+      });
+      }
+
 
       console.log(password);
       
@@ -36,6 +50,8 @@ class AdminController {
       let employee = {};
       let manager = {};
 
+      const affectedTables = ['users']; // Track affected tables
+
       if (role.toLowerCase() === 'manager' || role.toLowerCase() === 'employee') {
         // Insert into Employee table
           employee = await EmployeeModel.createEmployee(
@@ -44,9 +60,12 @@ class AdminController {
           last_name,
           address,
           city,
-          image,
-          phone
+          phone,
+          image
         );
+
+        affectedTables.push('employee');
+
         
         console.log("Employee created: " + JSON.stringify(employee));
 
@@ -57,6 +76,8 @@ class AdminController {
         );
 
         console.log("Employee assigned to branch");
+        affectedTables.push('employee_branch');
+
 
         if (role.toLowerCase() === 'manager') {
           // Insert into Manager table
@@ -65,6 +86,8 @@ class AdminController {
           );
 
           console.log("Manager created: " + JSON.stringify(manager));
+          affectedTables.push('manager');
+
 
           // Assign manager to branch
           await BranchModel.assignManagerToBranch(
@@ -73,6 +96,8 @@ class AdminController {
           );
 
           console.log("Manager assigned to branch");
+          affectedTables.push('manager_branch');
+
         }
       }
 
@@ -81,14 +106,15 @@ class AdminController {
         return res.status(201).json({
           message: 'User created successfully',
           user: { username, email, role, first_name, last_name, address, city, phone, image, branch_name },
+          affectedTables
         });
       } else {
-        return res.status(400).json({ message: 'Error creating user or associated data' });
+        return res.status(400).json({ message: 'Error creating user or associated data affected table before error are :'+ affectedTables });
       }
 
     } catch (error) {
       console.error("Error: " + error);
-      return res.status(500).json({ message: 'Error creating user' });
+      return res.status(500).json({ message: 'Error creating user and affected table before error are :'+ affectedTables });
     }
   }
 
