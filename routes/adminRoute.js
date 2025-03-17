@@ -1,4 +1,6 @@
 import express from 'express';
+import multer from 'multer';
+import path from 'path';
 import AdminController from '../controllers/adminController.js';
 import GeofenceController from '../controllers/geofenceController.js';
 import VehicleController from '../controllers/vehicleController.js';
@@ -8,6 +10,28 @@ import BranchController from "../controllers/branchController.js";
 
 const router = express.Router();
 
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: './uploads/', 
+    filename: (req, file, cb) => {
+      const username = req.body.username || req.body.model || 'default';
+      const sanitizedUsername = username.replace(/[^a-zA-Z0-9_-]/g, ''); 
+      const fileExtension = path.extname(file.originalname).toLowerCase(); 
+      const imageName = `${sanitizedUsername}-${Date.now()}${fileExtension}`;
+      cb(null, imageName); 
+    }
+  }),
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
+    }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024 // Limit file size to 5MB
+  }
+});
 
 /**
  * @swagger
@@ -31,7 +55,7 @@ const router = express.Router();
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -67,7 +91,8 @@ const router = express.Router();
  *                 example: Blue Area Branch
  *               image:
  *                 type: string
- *                 example: https://example.com/images/faizan.jpg
+ *                 format: binary
+ *                 description: The user's profile image
  *     responses:
  *       201:
  *         description: User created successfully
@@ -183,7 +208,7 @@ const router = express.Router();
  *         description: Internal server error
  */
 
-router.post('/create-user', AdminController.createUser);
+router.post('/create-user', upload.single('image'), AdminController.createUser);
 router.get('/list-users', AdminController.getAllUsers);
 router.put('/update-user/:userId', AdminController.updateUser);
 router.patch('/deactivate-user/:userId', AdminController.deactivateUser);
@@ -417,7 +442,7 @@ router.patch('/deactivate-geofence/:geoId', GeofenceController.deactivateGeofenc
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -429,10 +454,8 @@ router.patch('/deactivate-geofence/:geoId', GeofenceController.deactivateGeofenc
  *                 example: 2022
  *               image:
  *                 type: string
- *                 example: "https://example.com/vehicle-image.jpg"
- *               isActive:
- *                 type: boolean
- *                 example: true
+ *                 format: binary
+ *                 description: The vehicle image to be uploaded
  *     responses:
  *       201:
  *         description: Vehicle created successfully
@@ -566,7 +589,7 @@ router.patch('/deactivate-geofence/:geoId', GeofenceController.deactivateGeofenc
  *         description: Internal Server Error
  */
 
-router.post('/create-vehicle', VehicleController.createVehicle); 
+router.post('/create-vehicle', upload.single('image'), VehicleController.createVehicle); 
 router.get('/list-vehicles', VehicleController.getAllVehicles);
 router.put('/update-vehicle/:vehicleId', VehicleController.updateVehicle);
 router.patch('/deactivate-vehicle/:vehicleId', VehicleController.deactivateVehicle); 

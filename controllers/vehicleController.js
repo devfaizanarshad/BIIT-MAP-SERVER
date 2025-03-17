@@ -4,7 +4,12 @@ class VehicleController {
     // Create a new vehicle
     static async createVehicle(req, res) {
       try {
-        const { model, year, image } = req.body;
+        const { model, year} = req.body;
+
+        let image = null;
+        if (req.file) {
+          image = `/uploads/${req.file.filename}`;  
+        }
     
         console.log("Request Body:", req.body);
     

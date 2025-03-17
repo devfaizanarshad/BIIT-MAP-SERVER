@@ -4,13 +4,19 @@ import EmployeeModel from "../models/employeeModel.js";
 import ManagerModel from "../models/managerModel.js";
 import BranchModel from "../models/branchModel.js";
 
+
 class AdminController {
   // Create a new user
   static async createUser(req, res) {
 
     try {
-      const { username, email, password, role, first_name, last_name, address, city, phone, image, branch_name } = req.body;
+      const { username, email, password, role, first_name, last_name, address, city, phone, branch_name } = req.body;
       
+      let image = null;
+      if (req.file) {
+        image = `/uploads/${req.file.filename}`;  
+      }
+
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         return res.status(400).json({
@@ -53,6 +59,7 @@ class AdminController {
       const affectedTables = ['users']; // Track affected tables
 
       if (role.toLowerCase() === 'manager' || role.toLowerCase() === 'employee') {
+
         // Insert into Employee table
           employee = await EmployeeModel.createEmployee(
           user.user_id,
