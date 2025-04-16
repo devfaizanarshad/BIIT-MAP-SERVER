@@ -1,8 +1,35 @@
 import express from 'express';
+import path from 'path';
 import LocationController from '../controllers/locationController.js';
 import mapLocationController from '../controllers/mapAdminController.js';
+import multer from 'multer';
 
 const router = express.Router();
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, path.join(process.cwd(), 'uploads')); // Ensures cross-platform compatibility
+    },
+    filename: (req, file, cb) => {
+      const username = req.body.username || req.body.model || req.body.name || 'default';
+      const sanitizedUsername = username.replace(/[^a-zA-Z0-9_-]/g, '');
+      const fileExtension = path.extname(file.originalname).toLowerCase();
+      const imageName = `${sanitizedUsername}-${Date.now()}${fileExtension}`;
+      cb(null, imageName);
+    }
+  }),
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
+    }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024 // Limit file size to 5MB
+  }
+});
 
 /**
  * @swagger
@@ -55,7 +82,7 @@ router.post('/:employeeId/add-location', LocationController.addLocation);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -73,16 +100,25 @@ router.post('/:employeeId/add-location', LocationController.addLocation);
  *               description:
  *                 type: string
  *                 description: Description of the map location.
- *               image_url:
+ *               image:
  *                 type: string
- *                 description: URL of an image for the location (optional).
+ *                 format: binary
+ *                 description: Image file for the location (optional).
  *     responses:
  *       201:
  *         description: Map location added successfully.
  *       400:
  *         description: Invalid input or location data.
  */
-router.post('/add-map-location', mapLocationController.addLocation);
+router.post('/add-map-location', upload.single('image'), (req, res, next) => {  
+
+  console.log(req.body);
+  
+  if (!req.body.image_url) {
+    return res.status(400).json({ error: 'Image file is required' });
+  }
+  mapLocationController.addLocation(req, res, next);
+});
 
 router.get('/map-locations', mapLocationController.getAllLocations);
 

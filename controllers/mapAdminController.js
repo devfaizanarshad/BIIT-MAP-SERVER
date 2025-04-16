@@ -1,16 +1,25 @@
 import pool from "../config/db.js";
 
+
 class MapLocationController {
     // Add a new location
     async addLocation(req, res) {
-        const { latitude, longitude, name, description, image_url } = req.body;
+        console.log("Hello in add location");
+        
+        const { latitude, longitude, name, description} = req.body;
+        console.log(req.body.image_url);
+        
+        let image = null;
+        if (req.body.image_url) {
+          image = `/uploads/${req.body.name}`;  
+        }
 
         const query = `
             INSERT INTO map_locations (latitude, longitude, name, description, image_url, created_at)
             VALUES ($1, $2, $3, $4, $5, NOW())
             RETURNING *;
         `;
-        const values = [latitude, longitude, name, description, image_url];
+        const values = [latitude, longitude, name, description, image];
 
         try {
             const result = await pool.query(query, values);
