@@ -55,7 +55,7 @@ const UserModel = {
   // Fetch all users
   getAllUsers: async () => {
     try {
-      const query = `SELECT * FROM users WHERE is_deleted = FALSE;`;  // Only fetch active users
+      const query = `SELECT * FROM users JOIN Employee ON users.user_id = Employee.user_id WHERE users.is_deleted = FALSE;`;  // Only fetch active users
       const result = await db.query(query);
       return result.rows;
     } catch (error) {
@@ -101,7 +101,22 @@ const UserModel = {
   // Check if a user exists by email (for login)
   checkUserByEmail: async (email) => {
     try {
-      const query = `SELECT * FROM users WHERE email = $1 AND is_deleted = FALSE;`;  // Only active users
+      const query = `SELECT 
+    u.user_id,
+	  u.role,
+	  u.username,
+    u.password,
+    u.email,
+    e.employee_id,
+    m.manager_id
+    FROM users u
+    LEFT JOIN 
+    employee e ON u.user_id = e.user_id
+    LEFT JOIN 
+    manager m ON u.user_id = m.user_id
+    WHERE 
+    u.email = $1
+    AND u.is_deleted = FALSE;`;  // Only active users
       const result = await db.query(query, [email]);
       return result.rows[0]; // Return the user if found
     } catch (error) {

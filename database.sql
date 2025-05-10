@@ -243,3 +243,80 @@ CREATE TABLE map_locations (
     image_url VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+
+-- Congestion Checker
+
+CREATE OR REPLACE FUNCTION check_congestion_for_all_cars_fn(
+    graphhopper_coordinates jsonb
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    car RECORD;
+    path_point jsonb;
+    graphhopper_point jsonb;
+    matched_cars jsonb := '[]'::jsonb;
+    is_congested_flags jsonb := '[]'::jsonb;
+    congested_count INT;
+    total_count INT;
+    current_time TIMESTAMP := now();
+
+    lat1 DOUBLE PRECISION;
+    lon1 DOUBLE PRECISION;
+    lat2 DOUBLE PRECISION;
+    lon2 DOUBLE PRECISION;
+
+    status TEXT;
+BEGIN
+    FOR car IN
+        SELECT * FROM car_simulations
+        WHERE current_time BETWEEN start_time AND end_time
+    LOOP
+        FOR path_point IN SELECT * FROM jsonb_array_elements(car.path) LOOP
+            lat1 := (path_point->>'lat')::DOUBLE PRECISION;
+            lon1 := (path_point->>'lon')::DOUBLE PRECISION;
+
+            FOR graphhopper_point IN SELECT * FROM jsonb_array_elements(graphhopper_coordinates) LOOP
+                lat2 := (graphhopper_point->>0)::DOUBLE PRECISION;
+                lon2 := (graphhopper_point->>1)::DOUBLE PRECISION;
+
+                IF abs(lat1 - lat2) < 0.0001 AND abs(lon1 - lon2) < 0.0001 THEN
+                    is_congested_flags := is_congested_flags || to_jsonb(car.is_congested);
+                    matched_cars := matched_cars || path_point;
+                    EXIT;
+                END IF;
+            END LOOP;
+        END LOOP;
+    END LOOP;
+
+    SELECT COUNT(*) INTO congested_count
+    FROM jsonb_array_elements(is_congested_flags) AS flag
+    WHERE flag = 'true'::jsonb;
+
+    SELECT COUNT(*) INTO total_count
+    FROM jsonb_array_elements(is_congested_flags);
+
+    IF total_count = 0 THEN
+        status := 'no match';
+    ELSIF congested_count > total_count / 2 THEN
+        status := 'congested';
+    ELSE
+        status := 'not congested';
+    END IF;
+
+    RETURN jsonb_build_object(
+        'status', status,
+        'congested_count', congested_count,
+        'total_matched', total_count,
+        'matched_points', matched_cars
+    );
+END;
+$$;
+
+
+SELECT check_congestion_for_all_cars_fn(
+    '[ [33.61917, 73.01991], [33.61899, 73.02042] ]'::jsonb
+);

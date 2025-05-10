@@ -11,6 +11,11 @@ class AdminController {
 
     try {
       const { username, email, password, role, first_name, last_name, address, city, phone, branch_name } = req.body;
+
+      console.log(req.body);
+      console.log(req.file);
+      
+      
       
       let image = null;
       if (req.file) {
@@ -129,7 +134,7 @@ class AdminController {
   static async getAllUsers(req, res) {
     try {
       const users = await UserModel.getAllUsers();
-      if (users.length > 0) {
+      if (users.length >= 0) {
         return res.status(200).json({ users });
       }
     } catch (error) {

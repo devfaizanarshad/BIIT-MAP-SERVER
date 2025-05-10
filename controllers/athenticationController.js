@@ -26,7 +26,9 @@ const AuthController = {
           id: userResponse.user_id,
           username: userResponse.username,
           email: userResponse.email,
-          role: userResponse.role
+          role: userResponse.role,
+          employee_id: userResponse.employee_id,
+          manager_id: userResponse.manager_id
         }
       });
     } catch (error) {

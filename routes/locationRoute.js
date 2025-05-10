@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import LocationController from '../controllers/locationController.js';
 import mapLocationController from '../controllers/mapAdminController.js';
+import CarSimulationController from '../controllers/simulationController.js';
 import multer from 'multer';
 
 const router = express.Router();
@@ -162,5 +163,112 @@ router.get('/map-locations', mapLocationController.getAllLocations);
  *         description: Error fetching location.
  */
 router.get('/search-location', LocationController.getSerachLocation);
+
+
+/**
+ * @swagger
+ * /api/location/car-simulation:
+ *   post:
+ *     summary: Create a new car simulation.
+ *     description: Allows creating a new car simulation with car path, speed, time, and congestion info.
+ *     tags:
+ *       - Car Simulation
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               path:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     lat:
+ *                       type: number
+ *                       format: float
+ *                       description: Latitude of the car's location.
+ *                     lon:
+ *                       type: number
+ *                       format: float
+ *                       description: Longitude of the car's location.
+ *               speed:
+ *                 type: integer
+ *                 description: Speed of the car in km/h.
+ *               start_time:
+ *                 type: string
+ *                 format: time
+ *                 description: Start time of the simulation.
+ *               end_time:
+ *                 type: string
+ *                 format: time
+ *                 description: End time of the simulation.
+ *               is_congested:
+ *                 type: boolean
+ *                 description: Flag indicating whether the path is congested.
+ *     responses:
+ *       201:
+ *         description: Car simulation created successfully.
+ *       400:
+ *         description: Invalid input or missing fields.
+ */
+router.post('/car-simulation', CarSimulationController.createCarSimulation);
+/**
+ * @swagger
+ * /api/location/check-congestion:
+ *   post:
+ *     summary: Check congestion status of the car simulation path.
+ *     description: Checks the congestion status of a car's path based on speed and time data.
+ *     tags:
+ *       - Car Simulation
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               path:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     lat:
+ *                       type: number
+ *                       format: float
+ *                       description: Latitude of the car's location.
+ *                     lon:
+ *                       type: number
+ *                       format: float
+ *                       description: Longitude of the car's location.
+ *               speed:
+ *                 type: integer
+ *                 description: Speed of the car in km/h.
+ *               start_time:
+ *                 type: string
+ *                 format: time
+ *                 description: Start time of the simulation.
+ *               end_time:
+ *                 type: string
+ *                 format: time
+ *                 description: End time of the simulation.
+ *     responses:
+ *       200:
+ *         description: Congestion status of the car path.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 is_congested:
+ *                   type: boolean
+ *                   description: Flag indicating if the path is congested.
+ *       400:
+ *         description: Invalid input or missing fields.
+ *       500:
+ *         description: Error checking congestion status.
+ */
+router.post('/check-congestion', CarSimulationController.checkCongestion);
 
 export default router;

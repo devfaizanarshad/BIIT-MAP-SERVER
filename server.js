@@ -8,6 +8,12 @@ import locationRoutes from './routes/locationRoute.js';
 import authRoutes from './routes/authRoute.js';
 import cors from 'cors'; 
 import { swaggerDocs, swaggerUi } from './swaggerConfig.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 const app = express();
 const port = 3000;
@@ -16,6 +22,9 @@ app.use(cors());
 
 // Middleware 
 app.use(bodyParser.json());
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
