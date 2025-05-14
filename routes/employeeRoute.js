@@ -1,5 +1,6 @@
 import express from 'express';
 import EmployeeController from '../controllers/employeeController.js';
+import { authMiddleware } from '../middleware/Authicationmiddleware.js';
 
 const router = express.Router();
 
@@ -141,8 +142,8 @@ const router = express.Router();
  */
 
 // Employee Routes
-router.get('/my-profile/:employeeId', EmployeeController.getProfile);
-router.get('/my-geofences/:employeeId', EmployeeController.getAssignedGeofences);
-router.get('/my-vehicles/:employeeId', EmployeeController.getAssignedVehicles);
+router.get('/my-profile/:employeeId', authMiddleware, EmployeeController.getProfile);
+router.get('/my-geofences/:employeeId', authMiddleware, EmployeeController.getAssignedGeofences);
+router.get('/my-vehicles/:employeeId',authMiddleware,  EmployeeController.getAssignedVehicles);
 
 export default router;

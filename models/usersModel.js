@@ -108,6 +108,7 @@ const UserModel = {
     u.password,
     u.email,
     e.employee_id,
+    e.image,
     m.manager_id
     FROM users u
     LEFT JOIN 
@@ -116,9 +117,9 @@ const UserModel = {
     manager m ON u.user_id = m.user_id
     WHERE 
     u.email = $1
-    AND u.is_deleted = FALSE;`;  // Only active users
+    AND u.is_deleted = FALSE;`;  
       const result = await db.query(query, [email]);
-      return result.rows[0]; // Return the user if found
+      return result.rows[0]; 
     } catch (error) {
       console.error('Error checking user by email:', error);
       throw new Error('Error checking user by email');
