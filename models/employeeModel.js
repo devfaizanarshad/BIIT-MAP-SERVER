@@ -20,7 +20,16 @@ const EmployeeModel = {
   // Fetch an employee by ID
   getEmployeeById: async (employeeId) => {
     try {
-      const query = `SELECT * FROM employee WHERE employee_id = $1;`;
+      const query = `
+      SELECT * FROM employee e 
+      JOIN employee_branch eb
+      ON e.employee_id = eb.employee_id
+      JOIN branches b
+      ON b.branch_id = eb.branch_id
+      JOIN users u
+      ON u.user_id = e.user_id
+      WHERE e.employee_id= $1;
+      `;
       const result = await db.query(query, [employeeId]);
       return result.rows[0]; // Return the employee
     } catch (error) {

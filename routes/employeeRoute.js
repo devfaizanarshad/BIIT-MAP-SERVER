@@ -142,8 +142,8 @@ const router = express.Router();
  */
 
 // Employee Routes
-router.get('/my-profile/:employeeId', authMiddleware, EmployeeController.getProfile);
-router.get('/my-geofences/:employeeId', authMiddleware, EmployeeController.getAssignedGeofences);
-router.get('/my-vehicles/:employeeId',authMiddleware,  EmployeeController.getAssignedVehicles);
+router.get('/my-profile/:employeeId', EmployeeController.getProfile);
+router.get('/my-geofences/:employeeId', EmployeeController.getAssignedGeofences);
+router.get('/my-vehicles/:employeeId',  EmployeeController.getAssignedVehicles);
 
 export default router;

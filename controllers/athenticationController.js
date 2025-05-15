@@ -1,7 +1,4 @@
-import jwt from 'jsonwebtoken';
 import UserModel from '../models/usersModel.js';
-
-const JWT_SECRET = 'secret-123';
 
 const AuthController = {
   async login(req, res) {
@@ -15,20 +12,6 @@ const AuthController = {
 
       const { password: _, ...userResponse } = user;
 
-      const token = jwt.sign({
-        id: userResponse.user_id,
-        email: userResponse.email,
-        role: userResponse.role
-      }, JWT_SECRET, { expiresIn: '1h' });
-
-  res.cookie('token', token, {
-  httpOnly: true,
-  secure: false,
-  sameSite: 'lax',
-  maxAge: 1000 * 60 * 60,
-});
-
-
       res.json({
         message: 'Login successful',
         user: {
@@ -39,16 +22,14 @@ const AuthController = {
           employee_id: userResponse.employee_id,
           manager_id: userResponse.manager_id,
           image: userResponse.image,
-        },
-        token
-      });
+        }
+    });
     } catch (error) {
       res.status(500).json({ error: 'Login failed' });
     }
   },
 
   logout(req, res) {
-    res.clearCookie('token');
     res.json({ message: 'Logout successful' });
   },
 
