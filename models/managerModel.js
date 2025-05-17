@@ -104,7 +104,7 @@ WHERE
 },
 
 // Fetch current locations of employees under a specific manager
-getEmployeeLocationsByManagerId: async (managerId) => {
+getAllEmployeeLocations: async (employeeId) => {
   try {
     const query = `
       SELECT 
@@ -126,11 +126,11 @@ getEmployeeLocationsByManagerId: async (managerId) => {
       INNER JOIN 
         UserLocation ul ON e.user_id = ul.user_id
       WHERE 
-        m.manager_id = $1
+        e.employee_id = $1
       ORDER BY 
         ul.created_at DESC;
     `;
-    const result = await db.query(query, [managerId]);
+    const result = await db.query(query, [employeeId]);
     return result.rows; // Return the list of employees with their locations
   } catch (error) {
     console.error("Error fetching employee locations for manager:", error);

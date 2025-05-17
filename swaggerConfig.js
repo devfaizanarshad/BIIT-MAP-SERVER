@@ -35,7 +35,7 @@ const swaggerOptions = {
       { name: 'Fetch all assigned geofences' },
       { name: 'Assign a vehicle to an employee' },
       { name: 'Fetch all assigned vehicles' },
-      { name: 'Monitor All Employees locations' },
+      { name: 'Monitor All Employee locations' },
       { name: 'View geofence violations for employees' },
       { name: 'Monitor a single employee location' },
       { name: 'Fetch violations by filters' }, // New Route

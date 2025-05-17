@@ -105,11 +105,11 @@ class ManagerController {
     }
   }
 
-    // Get employees under a specific manager
-    static async getEmployeesLocationByManagerId(req, res) {
+    // Get all employee locations
+    static async getAllEmployeeLocation(req, res) {
       try {
-        const { managerId } = req.params;
-        const employees = await Manager.getEmployeeLocationsByManagerId(managerId);
+        const { employeeId } = req.params;
+        const employees = await Manager.getAllEmployeeLocations(employeeId);
         return res.status(200).json({ employees });
       } catch (error) {
         return res.status(500).json({ message: "Error fetching employees locations under manager" });

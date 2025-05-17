@@ -232,14 +232,14 @@ router.get('/:managerId/employees', ManagerController.getEmployeesByManagerId);
 // Fetch employees' locations under a manager
 /**
  * @swagger
- * /api/manager/{managerId}/employees/locations:
+ * /api/manager/{employeeId}/employees/Alllocations:
  *   get:
  *     tags:
- *       - Monitor All Employees locations
+ *       - Monitor All Employee locations
  *     summary: Monitor All Employees locations
- *     description: Get locations of all employees assigned to a manager.
+ *     description: Track all movements of any employee.
  *     parameters:
- *       - name: managerId
+ *       - name: employeeId
  *         in: path
  *         required: true
  *         schema:
@@ -271,7 +271,7 @@ router.get('/:managerId/employees', ManagerController.getEmployeesByManagerId);
  *       500:
  *         description: Error fetching locations.
  */
-router.get('/:managerId/employees/locations', ManagerController.getEmployeesLocationByManagerId);
+router.get('/:employeeId/employees/Alllocations', ManagerController.getAllEmployeeLocation);
 
 
 /**
