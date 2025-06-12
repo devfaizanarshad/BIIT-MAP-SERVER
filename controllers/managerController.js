@@ -72,9 +72,6 @@ class ManagerController {
       // Mock data: List of employee locations
       const employeeLocations = await Manager.getEmployeeLocationById(employeeId)
 
-      console.log(employeeLocations);
-
-
       return res.status(200).json({ employeeLocations });
     } catch (error) {
       return res.status(500).json({ message: "Error fetching employee locations" });

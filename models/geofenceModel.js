@@ -130,6 +130,8 @@ const GeofenceModel = {
   deleteGeofence: async (geo_id) => {
     const query = `UPDATE geofence SET is_deleted = TRUE WHERE geo_id = $1 RETURNING *;`;
     const result = await db.query(query, [geo_id]);
+    console.log(result);
+    
     return result.rows[0]; // Return the disabled geofence
   },
 

@@ -124,7 +124,7 @@ getAllEmployeeLocations: async (employeeId) => {
       INNER JOIN 
         Manager m ON mb.manager_id = m.manager_id
       INNER JOIN 
-        UserLocation ul ON e.user_id = ul.user_id
+        UserLocation ul ON e.employee_id = ul.user_id
       WHERE 
         e.employee_id = $1
       ORDER BY 
@@ -166,7 +166,7 @@ getEmployeeViolations: async (managerId) => {
       JOIN 
         UserLocation ul ON ev.ulocation_id = ul.ulocation_id
       JOIN 
-        Employee e ON ul.user_id = e.user_id
+        Employee e ON ul.user_id = e.employee_id
       LEFT JOIN 
         Geofence g ON ev.geo_id = g.geo_id
       WHERE 
@@ -200,7 +200,7 @@ getEmployeeLocationById : async (employeeId) => {
       FROM 
         Employee e
       JOIN 
-        UserLocation ul ON e.user_id = ul.user_id
+        UserLocation ul ON e.employee_id = ul.user_id
       WHERE 
         e.employee_id = $1
       ORDER BY ul.created_at DESC

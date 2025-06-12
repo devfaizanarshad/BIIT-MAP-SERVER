@@ -82,9 +82,7 @@ class EmployeeController {
         if (!geofences || geofences.length === 0) {
           return res.status(404).json({ message: 'No geofences found for the employee' });
         }
-    
-        console.log(`Geofences fetched: `, geofences);
-        return res.status(200).json({ geofences });
+            return res.status(200).json({ geofences });
       } catch (error) {
         console.error('Error fetching geofences:', error);
         return res.status(500).json({ message: 'Error fetching assigned geofences' });
