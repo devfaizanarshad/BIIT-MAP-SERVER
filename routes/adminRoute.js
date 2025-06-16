@@ -749,9 +749,44 @@ router.patch('/deactivate-vehicle/:vehicleId', VehicleController.deactivateVehic
  *         description: Internal Server Error
  */
 //router.post('/create-employee', EmployeeController.createEmployee);
+
+/**
+ * @swagger
+ * /api/admin/hide-employee/{employeeId}:
+ *   patch:
+ *     tags:
+ *       - Employee Management
+ *     summary: Hide Sensitive employee
+ *     description: Marks an employee as hidden without removing them from the system.
+ *     parameters:
+ *       - name: employeeId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: number
+ *         description: ID of the employee to hide
+ *     responses:
+ *       200:
+ *         description: Employee hidden successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Employee hidden successfully"
+ *       404:
+ *         description: Employee not found
+ *       500:
+ *         description: Internal Server Error
+ */
+
 router.get('/list-employees', EmployeeController.getAllEmployees); 
 router.put('/update-employee/:employeeId', EmployeeController.updateEmployee); 
 router.patch('/deactivate-employee/:employeeId', EmployeeController.deactivateEmployee); 
+router.patch('/hide-employee/:employeeId', EmployeeController.hideEmployee); 
+
 
 
 /**

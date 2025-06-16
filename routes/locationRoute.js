@@ -98,6 +98,9 @@ router.post('/:employeeId/add-location', LocationController.addLocation);
  *               name:
  *                 type: string
  *                 description: Name of the map location.
+ *               type:
+ *                 type: string
+ *                 description: Type of the map location.
  *               description:
  *                 type: string
  *                 description: Description of the map location.
@@ -121,7 +124,36 @@ router.post('/add-map-location', upload.single('image'), (req, res, next) => {
   mapLocationController.addLocation(req, res, next);
 });
 
-router.get('/map-locations', mapLocationController.getAllLocations);
+/**
+ * @swagger
+ * /api/location/map-locations:
+ *   post:
+ *     summary: Get locations by type (e.g., hospitals, toll plazas).
+ *     tags:
+ *       - Map Locations
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 example: "hospital"  # Could be "ptcl", "toll", etc.
+ *     responses:
+ *       200:
+ *         description: Returns locations for the given type.
+ *       400:
+ *         description: Type is missing or invalid.
+ */
+router.post('/map-locations', (req, res) => {
+  const { type } = req.body;
+  if (!type) {
+    return res.status(400).json({ error: 'Location type is required' });
+  }
+  mapLocationController.getLocationsByType(req, res);
+});
 
 /**
  * @swagger

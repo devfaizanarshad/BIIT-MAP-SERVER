@@ -93,7 +93,7 @@ INNER JOIN
     Manager m ON mb.manager_id = m.manager_id
 WHERE 
     m.manager_id = $1
-    AND e.user_id NOT IN (SELECT user_id FROM Manager);
+    AND e.user_id NOT IN (SELECT user_id FROM Manager) AND  e.is_deleted = FALSE AND e.is_hidden = FALSE;
     `;
     const result = await db.query(query, [managerId]);
     return result.rows; // Return the list of employees

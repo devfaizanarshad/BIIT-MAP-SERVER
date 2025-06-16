@@ -81,6 +81,9 @@ class GeofenceController {
     static async deactivateGeofence(req, res) {
       try {
         const { geoId } = req.params;
+
+        console.log(geoId);
+        
         
         const geofence = GeofenceModel.deleteGeofence(geoId)
 

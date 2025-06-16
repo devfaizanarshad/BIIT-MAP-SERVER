@@ -54,6 +54,22 @@ class EmployeeController {
       }
     }
 
+        // Hide sensitive employee
+    static async hideEmployee(req, res) {
+      try {
+        const { employeeId } = req.params;
+
+        const employee = await EmployeeModel.hideEmployee(employeeId)
+
+        // Mock success response
+        return res.status(200).json({
+          message: `Employee ${employeeId} Hidden successfully`,
+        });
+      } catch (error) {
+        return res.status(500).json({ message: 'Error Hiding employee' });
+      }
+    }
+
     // Get employee profile 
   static async getProfile(req, res) {
     try {

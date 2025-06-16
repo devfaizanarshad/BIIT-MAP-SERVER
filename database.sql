@@ -244,6 +244,16 @@ CREATE TABLE map_locations (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE car_simulations
+(
+    car_id SERIAL PRIMARY KEY,
+    path jsonb,
+    speed integer,
+    start_time time without time zone,
+    end_time time without time zone,
+    is_congested boolean
+)
+
 
 
 -- Congestion Checker
@@ -320,3 +330,38 @@ $$;
 SELECT check_congestion_for_all_cars_fn(
     '[ [33.61917, 73.01991], [33.61899, 73.02042] ]'::jsonb
 );
+
+
+-- Column add karna
+-- ALTER TABLE users ADD COLUMN age INT;
+
+-- Column delete karna
+-- ALTER TABLE users DROP COLUMN age;
+
+-- Column ka naam change karna
+-- ALTER TABLE users RENAME COLUMN username TO user_name;
+
+-- Column ka data type change karna
+-- ALTER TABLE users ALTER COLUMN age TYPE VARCHAR(10);
+
+-- Table ka naam change karna
+-- ALTER TABLE users RENAME TO app_users;
+
+-- Specific user ka name update karna
+-- UPDATE users SET name = 'Faizan' WHERE id = 1;
+
+-- Sabhi users ka status active karna
+-- UPDATE users SET status = 'active';
+
+-- Multiple columns update karna
+-- UPDATE users SET name = 'Ali', age = 25 WHERE id = 2;
+
+-- User ko delete karna
+-- DELETE FROM users WHERE id = 3;      
+-- Sabhi users ko delete karna
+-- DELETE FROM users;
+-- User ko soft delete karna
+-- UPDATE users SET is_deleted = TRUE WHERE id = 4;
+
+
+-- ALTER TABLE employee ADD COLUMN is_hidden boolean DEFAULT FALSE;

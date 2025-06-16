@@ -6,7 +6,7 @@ class MapLocationController {
     async addLocation(req, res) {
         console.log("Hello in add location");
         
-        const { latitude, longitude, name, description} = req.body;
+        const { latitude, longitude, name, description, type} = req.body;
         console.log(req.body.image_url);
         
         let image = null;
@@ -15,11 +15,11 @@ class MapLocationController {
         }
 
         const query = `
-            INSERT INTO map_locations (latitude, longitude, name, description, image_url, created_at)
-            VALUES ($1, $2, $3, $4, $5, NOW())
+            INSERT INTO map_locations (latitude, longitude, name, description, image_url, created_at, loc_type)
+            VALUES ($1, $2, $3, $4, $5, NOW(), $6)
             RETURNING *;
         `;
-        const values = [latitude, longitude, name, description, image];
+        const values = [latitude, longitude, name, description, image, type];
 
         try {
             const result = await pool.query(query, values);
@@ -30,11 +30,13 @@ class MapLocationController {
     }
 
     // Get all locations
-    async getAllLocations(req, res) {
-        const query = 'SELECT * FROM map_locations;';
+    async getLocationsByType(req, res) {
 
+        const {type} = req.body;
+        const query = 'SELECT * FROM map_locations WHERE loc_type = $1;';
+        const values = [type];
         try {
-            const result = await pool.query(query);
+            const result = await pool.query(query, values);
             return res.status(200).json(result.rows);
         } catch (error) {
             return res.status(500).json({ error: 'Failed to fetch locations', details: error.message });

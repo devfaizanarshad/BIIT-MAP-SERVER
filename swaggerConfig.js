@@ -52,6 +52,7 @@ const swaggerOptions = {
       { name: 'Location Routes', description: 'Operations related to Locations functionalities.' },
       { name: 'Track geofence boundary' },
       { name: 'Add a new map location' },
+      {name:  'Map Locations'},
       { name: 'Search Location'},
 
       

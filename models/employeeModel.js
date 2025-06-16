@@ -73,12 +73,34 @@ const EmployeeModel = {
   // Delete an employee (set is_active to false)
   deleteEmployee: async (employeeId) => {
     try {
+   
       const query = `UPDATE employee SET is_deleted = TRUE WHERE employee_id = $1 RETURNING *;`;
       const result = await db.query(query, [employeeId]);
       return result.rows[0]; // Return the disabled employee
     } catch (error) {
       console.error('Error deleting employee:', error);
       throw new Error('Error deleting employee');
+    }
+  },
+
+  // Hide an employee (set is_hidden to true)
+  hideEmployee: async (employeeId) => {
+    try {
+      const employee = await EmployeeModel.getEmployeeById(employeeId);
+      console.log(employee);
+      
+      if (employee.is_hidden) {
+        // If already hidden, show the employee again
+        const query = `UPDATE employee SET is_hidden = FALSE WHERE employee_id = $1 RETURNING *;`;
+        const result = await db.query(query, [employeeId]);
+        return result.rows[0]; // Return the shown employee
+      }
+      const query = `UPDATE employee SET is_hidden = TRUE WHERE employee_id = $1 RETURNING *;`;
+      const result = await db.query(query, [employeeId]);
+      return result.rows[0]; // Return the hidden employee
+    } catch (error) {
+      console.error('Error hiding employee:', error);
+      throw new Error('Error hiding employee');
     }
   },
 };
