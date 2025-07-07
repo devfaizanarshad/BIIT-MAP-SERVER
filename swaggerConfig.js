@@ -62,6 +62,13 @@ const swaggerOptions = {
       { name: 'Reset Password'},
 
 
+      // Layer Management
+      { name: 'Layer Management', description: 'Operations related to map layers.' },
+
+      
+
+
+
     ],
   },
   apis: ['./routes/*.js'], // Path to the route files for Swagger to scan

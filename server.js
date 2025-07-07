@@ -6,6 +6,7 @@ import employeeRoutes from './routes/employeeRoute.js';
 import managerRoutes from './routes/managerRoute.js';
 import locationRoutes from './routes/locationRoute.js';
 import authRoutes from './routes/authRoute.js';
+import layerRoutes from './routes/layerRoute.js';
 import cors from 'cors'; 
 import { swaggerDocs, swaggerUi } from './swaggerConfig.js';
 import path from 'path';
@@ -43,6 +44,7 @@ app.use('/api/employee', employeeRoutes);
 app.use('/api/manager', managerRoutes); 
 app.use('/api/location', locationRoutes); 
 app.use('/api', authRoutes); 
+app.use('/api/layers', layerRoutes);
 
 // Test route
 app.get('/', (req, res) => {

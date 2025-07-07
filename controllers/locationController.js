@@ -153,6 +153,9 @@ static async addLocation(req, res) {
     const { latitude, longitude } = req.body;
     const { employeeId } = req.params;
 
+    console.log('Employee_ID',employeeId);
+    
+
     // Save the new user location to the database
     const newLocation = await UserLocationModel.createUserLocation(employeeId, longitude, latitude);
 
@@ -203,7 +206,7 @@ static async addLocation(req, res) {
           await UserLocationModel.updateGeofenceViolationStatus(employeeId, geo_id, true);
           const message = `Violation: User LEFT authorized geofence (ID: ${geo_id}).`;
           violationMessages.push(message);
-          // await axios.post('http://localhost:4000/notify', { data: { message, employeeId } }); // Uncomment to trigger notification
+          //await axios.post('http://localhost:4000/notify', { data: { message, employeeId } }); // Uncomment to trigger notification
         } else if (insideGeofence && is_violating) {
           // Violation ends — user re-enters authorized area
           await UserLocationModel.updateGeofenceViolationStatus(employeeId, geo_id, false);
@@ -227,7 +230,7 @@ static async addLocation(req, res) {
           await UserLocationModel.updateGeofenceViolationStatus(employeeId, geo_id, true);
           const message = `Violation: User ENTERED restricted geofence (ID: ${geo_id}).`;
           violationMessages.push(message);
-          // await axios.post('http://localhost:4000/notify', { data: { message, employeeId } }); // Uncomment to trigger notification
+          //await axios.post('http://localhost:4000/notify', { data: { message, employeeId } }); // Uncomment to trigger notification
         } else if (!insideGeofence && is_violating) {
           // Violation ends — user left restricted area
           await UserLocationModel.updateGeofenceViolationStatus(employeeId, geo_id, false);

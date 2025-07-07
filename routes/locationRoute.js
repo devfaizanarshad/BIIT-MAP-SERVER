@@ -3,7 +3,13 @@ import path from 'path';
 import LocationController from '../controllers/locationController.js';
 import mapLocationController from '../controllers/mapAdminController.js';
 import CarSimulationController from '../controllers/simulationController.js';
+import LayerModel from '../models/Layer.js';
 import multer from 'multer';
+import polyline from '@mapbox/polyline';
+import fetch from 'node-fetch';
+import db from "../config/db.js";  
+import { log } from 'console';
+
 
 const router = express.Router();
 
@@ -302,5 +308,190 @@ router.post('/car-simulation', CarSimulationController.createCarSimulation);
  *         description: Error checking congestion status.
  */
 router.post('/check-congestion', CarSimulationController.checkCongestion);
+
+
+
+router.post('/threat-simulation', CarSimulationController.createThreatSimulation);
+
+router.get('/threat-simulation/all', CarSimulationController.getAllThreatSimulations);
+
+router.get('/threat-simulation/:threat_level', CarSimulationController.getThreatSimulationsByLevel);
+
+router.post("/get-route", async (req, res) => {
+  const { source, destination } = req.body;
+
+  if (!source || !destination) {
+    return res.status(400).json({ error: "Source and destination are required." });
+  }
+
+  const sourceParam = source.join(",");
+  const destinationParam = destination.join(",");
+
+  const url = `http://localhost:8989/route?point=${sourceParam}&point=${destinationParam}&type=json&profile=car`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!data.paths || data.paths.length === 0) {
+      return res.status(404).json({ error: "No route found" });
+    }
+
+    const path = data.paths[0];
+    const decodedPoints = polyline.decode(path.points); // [lat, lng]
+
+    // --- Call Congestion API ---
+    const congestionRes = await fetch('http://localhost:3000/api/location/check-congestion', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ graphhopper_coordinates: decodedPoints })
+    });
+
+    const congestionData = await congestionRes.json();
+    const congestedPoints =
+      congestionData?.result?.status === "Segment is Congested"
+        ? congestionData.result.matchedPoints
+        : [];
+
+    // --- Final Response ---
+    return res.json({
+      path: decodedPoints,
+      congestedPoints: congestedPoints
+    });
+
+  } catch (error) {
+    console.error("Backend error:", error.message);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+// ✅ POST /api/map-lines → Create new polyline
+router.post('/map-lines', async (req, res) => {
+  const { name, description, category, hasThreat, threatLevel, geometry } = req.body;
+
+  // Validate required fields
+  if (!name || !category || !geometry) {
+    return res.status(400).json({ 
+      success: false,
+      error: 'Missing required fields (name, category, geometry)' 
+    });
+  }
+
+  // Validate geometry format
+  if (!Array.isArray(geometry) || geometry.length < 2) {
+    return res.status(400).json({
+      success: false,
+      error: 'Geometry must be an array of at least 2 coordinates'
+    });
+  }
+
+  try {
+    // Convert geometry to PostgreSQL-compatible format
+    const coordinates = JSON.stringify(geometry);
+
+    
+    const layer = await LayerModel.getLayerTypeId(category);
+    console.log("Layer ID:", layer);
+    const id = layer.id;
+
+    const result = await db.query(`
+      INSERT INTO map_lines (
+        name, description, category, has_threat, threat_level, coordinates, layer_type_id
+      ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)
+      RETURNING *
+    `, [
+      name,
+      description || null,
+      category,
+      Boolean(hasThreat), // Ensure boolean value
+      hasThreat ? threatLevel : null,
+      coordinates,
+      id
+    ]);
+
+    res.status(201).json({
+      success: true,
+      data: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error('Database error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to save map line',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// ✅ GET /api/map-lines → Fetch all or filter by category/threat
+router.get('/map-lines/all', async (req, res) => {
+  try {
+    const query = `
+      SELECT id, name, description, category, has_threat, threat_level, coordinates
+      FROM map_lines
+    `;
+
+    const result = await db.query(query);
+
+    const lines = result.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      category: row.category,
+      hasThreat: row.has_threat,
+      threatLevel: row.threat_level,
+      coordinates: row.coordinates // Already in [lng, lat]
+    }));
+
+    res.json(lines);
+  } catch (error) {
+    console.error('Error fetching map lines:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+// ✅ GET /api/map-lines → Fetch all or filter by category/threat
+router.get('/map-lines/:category', async (req, res) => {
+  try {
+    const { category } = req.params;
+
+    console.log(typeof(category));
+    
+
+    const query = `
+      SELECT id, name, description, category, has_threat, threat_level, coordinates
+      FROM map_lines
+      WHERE category = $1
+    `;
+    const values = [category];
+    if (!category) {
+      return res.status(400).json({ error: 'Category is required' });
+    }
+
+    const result = await db.query(query, values);
+
+    const lines = result.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      category: row.category,
+      hasThreat: row.has_threat,
+      threatLevel: row.threat_level,
+      coordinates: row.coordinates // Already in [lng, lat]
+    }));
+
+    res.json(lines);
+  } catch (error) {
+    console.error('Error fetching map lines:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 
 export default router;

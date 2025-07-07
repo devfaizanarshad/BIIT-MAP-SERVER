@@ -1,14 +1,26 @@
 import db from "../config/db.js";
+import EmployeeController from "../controllers/employeeController.js";
+import EmployeeModel from "./employeeModel.js";
 
 const UserLocationModel = {
   // Insert a new user location
   createUserLocation: async (userId, longitude, latitude) => {
+
+    console.log("Before insert", userId, longitude, latitude);
+
+    const res = await EmployeeModel.getEmployeeById(userId);
+    console.log(res.user_id);
+  
+
     const query = `
       INSERT INTO userlocation (user_id, longitude, latitude) 
       VALUES ($1, $2, $3) RETURNING *;
     `;
-    const values = [userId, longitude, latitude];
+    const values = [res.user_id, longitude, latitude];
     const result = await db.query(query, values);
+
+    console.log("After insert", result);
+    
     return result.rows[0]; // Returns the created location
   },
 

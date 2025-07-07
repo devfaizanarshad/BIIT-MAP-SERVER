@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs'; // For password hashing
 import db from "../config/db.js"; 
+import EmployeeModel from './employeeModel.js';
 
 const UserModel = {
   
@@ -89,6 +90,7 @@ const UserModel = {
   // Delete a user (by setting is_active to false)
   disableUser: async (user_id) => {
     try {
+      EmployeeModel.deleteEmployee(user_id);
       const query = `UPDATE users SET is_deleted = TRUE WHERE user_id = $1 RETURNING *;`;
       const result = await db.query(query, [user_id]);
       return result.rows[0]; // Return the disabled user

@@ -1,4 +1,5 @@
 import CarSimulationModel from "../models/carSimulationModel.js";
+import ThreatSimulationModel from "../models/threatSimulationModel.js";
 
 const CarSimulationController = {
   
@@ -120,6 +121,8 @@ const CarSimulationController = {
       // Extract graphhopper coordinates from the request body
       const { graphhopper_coordinates } = req.body;
 
+      console.log("Received graphhopper_coordinates:", req.body);
+
       console.log(graphhopper_coordinates);
       
 
@@ -148,6 +151,71 @@ const CarSimulationController = {
       });
     }
   },
+
+  //create threat simulation
+  createThreatSimulation: async (req, res) => { 
+
+    try {
+      const { path, start_time, end_time, threat_level } = req.body;
+      
+      // Validate inputs (can add more validation if needed)
+      if (!path || !start_time || !end_time || !threat_level) {
+        return res.status(400).json({ message: "Missing required fields." });
+      }
+
+      const newSimulation = await ThreatSimulationModel.createThreatSimulation(
+        path,
+        start_time,
+        end_time,
+        threat_level
+      );
+
+      return res.status(201).json({
+        message: "Threat simulation created successfully",
+        data: newSimulation
+      });
+    } catch (error) {
+      console.error("Error in creating threat simulation:", error);
+      return res.status(500).json({ message: "Failed to create threat simulation" });
+    }
+    
+  },
+
+    // Get all threat simulations
+  getAllThreatSimulations: async (req, res) => {
+    try {
+      const simulations = await ThreatSimulationModel.getAllThreatSimulations();
+      return res.status(200).json({
+        message: "Threat simulations fetched successfully",
+        data: simulations
+      });
+    } catch (error) {
+      console.error("Error fetching threat simulations:", error);
+      return res.status(500).json({ message: "Failed to fetch threat simulations" });
+    }
+  },
+
+  // Get threat simulations by threat level
+  getThreatSimulationsByLevel: async (req, res) => {  
+    try {
+      const { threat_level } = req.params;
+
+      // Validate the threat_level parameter
+      if (!threat_level) {
+        return res.status(400).json({ message: "Missing threat_level parameter." });
+      }
+
+      const simulations = await ThreatSimulationModel.getThreatSimulationsByLevel(threat_level);
+      return res.status(200).json({
+        message: "Threat simulations fetched successfully",
+        data: simulations
+      });
+    } catch (error) {
+      console.error("Error fetching threat simulations:", error);
+      return res.status(500).json({ message: "Failed to fetch threat simulations" });
+    }
+  },
+
 
 };
 

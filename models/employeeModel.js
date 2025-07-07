@@ -74,7 +74,7 @@ const EmployeeModel = {
   deleteEmployee: async (employeeId) => {
     try {
    
-      const query = `UPDATE employee SET is_deleted = TRUE WHERE employee_id = $1 RETURNING *;`;
+      const query = `UPDATE employee SET is_deleted = TRUE WHERE user_id = $1 RETURNING *;`;
       const result = await db.query(query, [employeeId]);
       return result.rows[0]; // Return the disabled employee
     } catch (error) {

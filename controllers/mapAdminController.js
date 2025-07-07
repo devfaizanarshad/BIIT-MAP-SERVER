@@ -1,4 +1,5 @@
 import pool from "../config/db.js";
+import LayerModel from "../models/Layer.js";
 
 
 class MapLocationController {
@@ -14,12 +15,16 @@ class MapLocationController {
           image = `/uploads/${req.body.name}`;  
         }
 
+        const layer = await LayerModel.getLayerTypeId(type);
+        console.log("Layer ID:", layer);
+        const id = layer.id;
+
         const query = `
-            INSERT INTO map_locations (latitude, longitude, name, description, image_url, created_at, loc_type)
-            VALUES ($1, $2, $3, $4, $5, NOW(), $6)
+            INSERT INTO map_locations (latitude, longitude, name, description, image_url, created_at, loc_type, layer_type_id)
+            VALUES ($1, $2, $3, $4, $5, NOW(), $6, $7)
             RETURNING *;
         `;
-        const values = [latitude, longitude, name, description, image, type];
+        const values = [latitude, longitude, name, description, image, type, id];
 
         try {
             const result = await pool.query(query, values);
