@@ -156,6 +156,22 @@ getPublicLayers: async (req, res) => {
   }
 },
 
+        // Hide sensitive employee
+hideUserLayer: async(req, res) =>{
+      try {
+        const { Id } = req.params;
+
+        const employee = await LayerModel.hideUserLayer(Id)
+
+        // Mock success response
+        return res.status(200).json({
+          message: `Layers ${Id} Hidden successfully`,
+        });
+      } catch (error) {
+        return res.status(500).json({ message: 'Error Hiding Layer' });
+      }
+    },   
+
 
 
 };

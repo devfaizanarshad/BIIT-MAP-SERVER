@@ -285,6 +285,10 @@ router.get("/user/:userId/layers", LayerController.getUserLayers);
 router.get("/Layertype/public", LayerController.getPublicLayers);
 
 
+router.patch('/hide-layer/:Id', LayerController.hideUserLayer);
+
+
+
 
 
 export default router;

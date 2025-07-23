@@ -534,3 +534,145 @@ CREATE TABLE IF NOT EXISTS user_layer_access (
 
 ALTER TABLE layer_type
 ADD COLUMN is_public BOOLEAN DEFAULT FALSE;
+
+
+-- Table for User Hide History
+-- This table will track when a user hides their location and when they unhide it.
+
+CREATE TABLE user_hide_history (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  hide_start TIMESTAMP NOT NULL,
+  hide_end TIMESTAMP
+);
+
+
+INSERT INTO user_hide_history (user_id, hide_start)
+VALUES (:userId, NOW());
+
+UPDATE user_hide_history
+SET hide_end = NOW()
+WHERE user_id = :userId AND hide_end IS NULL;
+
+-- Query to get employee details along with their latest location filtered by user hide history
+
+SELECT 
+  e.employee_id,
+  e.first_name,
+  e.last_name,
+  e.city,
+  ul.longitude,
+  ul.latitude,
+  ul.created_at AS location_timestamp
+FROM 
+  Employee e
+INNER JOIN 
+  Employee_Branch eb ON e.employee_id = eb.employee_id
+INNER JOIN 
+  Manager_Branch mb ON eb.branch_id = mb.branch_id
+INNER JOIN 
+  Manager m ON mb.manager_id = m.manager_id
+INNER JOIN 
+  UserLocation ul ON e.user_id = ul.user_id
+WHERE 
+  e.employee_id = $1
+  AND NOT EXISTS (
+    SELECT 1 
+    FROM user_hide_history h
+    WHERE 
+      h.user_id = e.user_id
+      AND ul.created_at BETWEEN h.hide_start AND COALESCE(h.hide_end, NOW())
+  )
+ORDER BY 
+  ul.created_at DESC;
+
+
+-- Function to get filtered violations for a manager
+
+async getFilteredViolationsModel(managerId, start_date, end_date, employee_id, geo_id) {
+  try {
+    const employees = await ManagerModel.getEmployeesByManagerId(managerId);
+    const employeeIds = employees.map(emp => emp.employee_id);
+
+    if (employeeIds.length === 0) {
+      return { message: 'No employees found under this manager.' };
+    }
+
+    let query = `
+      SELECT 
+        ev.ulocation_id, 
+        ev.violation_type, 
+        ev.violation_time, 
+        ev.geo_id, 
+        g.name AS geo_name, 
+        e.employee_id, 
+        e.first_name, 
+        e.last_name
+      FROM 
+        UserLocation_Geofence_Violation ev
+      JOIN 
+        UserLocation ul ON ev.ulocation_id = ul.ulocation_id
+      JOIN 
+        Employee e ON ul.user_id = e.user_id
+      LEFT JOIN 
+        Geofence g ON ev.geo_id = g.geo_id
+      WHERE 
+        e.employee_id = ANY($1::int[])
+        AND NOT EXISTS (
+          SELECT 1 
+          FROM user_hide_history h
+          WHERE 
+            h.user_id = e.user_id
+            AND ev.violation_time BETWEEN h.hide_start AND COALESCE(h.hide_end, NOW())
+        )
+    `;
+
+    const params = [employeeIds];
+
+    if (start_date) {
+      query += ` AND ev.violation_time >= $${params.length + 1}`;
+      params.push(start_date);
+    }
+
+    if (end_date) {
+      query += ` AND ev.violation_time <= $${params.length + 1}`;
+      params.push(end_date);
+    }
+
+    if (employee_id) {
+      query += ` AND e.employee_id = $${params.length + 1}`;
+      params.push(employee_id);
+    }
+
+    if (geo_id) {
+      query += ` AND g.geo_id = $${params.length + 1}`;
+      params.push(geo_id);
+    }
+
+    const result = await db.query(query, params);
+    return result.rows;
+  } catch (error) {
+    console.error("Error fetching violations in model:", error);
+    throw error;
+  }
+}
+
+ALTER TABLE user_layer_access
+ALTER COLUMN start_time TYPE TIME,
+ALTER COLUMN end_time TYPE TIME;
+
+ALTER TABLE user_layer_access
+  ADD COLUMN start_date DATE,
+  ADD COLUMN end_date DATE,
+
+SELECT lt.*
+FROM user_layer_access ula
+JOIN layer_type lt ON lt.id = ula.layer_type_id
+WHERE ula.user_id = $1
+  AND (ula.start_date IS NULL OR ula.start_date <= CURRENT_DATE)
+  AND (ula.end_date IS NULL OR ula.end_date >= CURRENT_DATE)
+  AND (ula.start_time IS NULL OR ula.start_time <= CURRENT_TIME)
+  AND (ula.end_time IS NULL OR ula.end_time > CURRENT_TIME)
+ORDER BY lt.name;
+
+

@@ -7,6 +7,7 @@ import managerRoutes from './routes/managerRoute.js';
 import locationRoutes from './routes/locationRoute.js';
 import authRoutes from './routes/authRoute.js';
 import layerRoutes from './routes/layerRoute.js';
+import userGeoLayer from './routes/userGeoLayer.js';
 import cors from 'cors'; 
 import { swaggerDocs, swaggerUi } from './swaggerConfig.js';
 import path from 'path';
@@ -45,6 +46,7 @@ app.use('/api/manager', managerRoutes);
 app.use('/api/location', locationRoutes); 
 app.use('/api', authRoutes); 
 app.use('/api/layers', layerRoutes);
+app.use('/api/usergeolayer', userGeoLayer);
 
 // Test route
 app.get('/', (req, res) => {
@@ -55,3 +57,4 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
   console.log(`Swagger docs available at http://localhost:${port}/api-docs`);
 });
+

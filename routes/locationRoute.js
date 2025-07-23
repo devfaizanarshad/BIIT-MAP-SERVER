@@ -458,10 +458,7 @@ router.get('/map-lines/all', async (req, res) => {
 // ✅ GET /api/map-lines → Fetch all or filter by category/threat
 router.get('/map-lines/:category', async (req, res) => {
   try {
-    const { category } = req.params;
-
-    console.log(typeof(category));
-    
+    const { category } = req.params;    
 
     const query = `
       SELECT id, name, description, category, has_threat, threat_level, coordinates
