@@ -157,7 +157,7 @@ ORDER BY lt.name;
       }
       const query = `UPDATE user_layer_access SET is_hidden = TRUE WHERE id = $1 RETURNING *;`;
       const result = await db.query(query, [Id]);
-      return result.rows[0]; // Return the hidden employee
+      return result.rows[0]; 
     } catch (error) {
       console.error('Error hiding Layer:', error);
       throw new Error('Error hiding Layer');

@@ -10,6 +10,7 @@ The **BIIT Map Server** is a backend system designed for managing geofences, use
 - Geofence Management (create, update, deactivate).
 - User and Vehicle Management.
 - Real-time Location Tracking.
+- MapLayer Based Access
 
 ---
 
