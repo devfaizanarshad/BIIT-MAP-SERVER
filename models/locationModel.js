@@ -10,11 +10,6 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
-// Twilio Credentials (Directly Included)
-const accountSid = "ACcfa85236d2ce0dcd9bb89ce4701c053d";
-const authToken = "your_auth_token";
-const twilioPhone = "+18338563156";
-
 const client = twilio(accountSid, authToken);
 
 // MySQL Connection
